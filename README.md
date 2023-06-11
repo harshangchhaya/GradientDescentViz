@@ -1,4 +1,7 @@
 # GradientDescentViz
-A place to visualize gradient descent for linear regression
+A place to visualize gradient descent for linear regression.
 
-A Command Line Interface version of project implementation.
+### Version
+Python 3.8.16
+
+This is the Command line version of the code.
