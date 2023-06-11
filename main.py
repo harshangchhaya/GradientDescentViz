@@ -41,7 +41,7 @@ class RegressionPlot:
         for i, _ in enumerate(self.values):
             temp_x = self.values[i]
             temp_y = self.predictions[i]
-            total_error += (temp_y - (m * temp_x + b)) ** SQUARED
+            total_error += (temp_y - ((m * temp_x) + b)) ** SQUARED
         return total_error / len(self.values)
 
     def gradient_descent(self, m: float, b: float, l_r: float) -> tuple:
@@ -66,11 +66,11 @@ class RegressionPlot:
         y_data = np.linspace(-1, 5, PLOT_POINTS)
         self.X, self.Y = np.meshgrid(x_data, y_data)
         # This part of code is buggy
-        self.Z = self.Y
+        self.Z = np.zeros((PLOT_POINTS, PLOT_POINTS))
 
         for i, _ in enumerate(self.X):
-            for j in range(i):
-                self.Z[i][j] = self.mse_loss(self.X[i][j], self.Y[i][j])
+            for j, _ in enumerate(self.Y):
+                self.Z[i, j] = self.mse_loss(self.X[i, j], self.Y[i, j])
 
     def update_points(self) -> None:
         """Update new points on plot"""
