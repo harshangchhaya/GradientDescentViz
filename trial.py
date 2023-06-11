@@ -1,3 +1,8 @@
-x = input("Enter:")
-print(type(x), x)
-print(True if x is None else False)
+def mod_list(lis):
+    lis.append(4)
+    return lis
+
+
+lis = [1, 2, 3]
+mod_list(lis)
+print(lis)
