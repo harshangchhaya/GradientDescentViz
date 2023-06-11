@@ -144,9 +144,9 @@ def main() -> None:
     reg_viz.plot_output(m, b, mse_loss(m, b))
 
     for i in range(epochs):
-        if i % epoch_period == 0:
+        m, b = gradient_descent(m, b, l_r)
+        if i % epoch_period == 0 and i != 0:
             plt.close("all")
-            m, b = gradient_descent(m, b, l_r)
             reg_viz.plot_output(m, b, mse_loss(m, b))
             print("Epoch ", i)
             plt.show(block=False)
