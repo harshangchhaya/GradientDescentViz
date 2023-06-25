@@ -29,7 +29,7 @@ def rng_data_gen() -> None:
         predictions.append(temp_y)
 
 
-def mse_loss(m: float, b: float) -> float:
+def mse_loss(m: float, b: float, values: list, predictions: list) -> float:
     """Mean Squared Error Loss Caluclation"""
     # m: slope, b: intercept
     total_error = 0
@@ -37,10 +37,13 @@ def mse_loss(m: float, b: float) -> float:
         temp_x = values[i]
         temp_y = predictions[i]
         total_error += (temp_y - ((m * temp_x) + b)) ** SQUARED
+
     return total_error / len(values)
 
 
-def gradient_descent(m: float, b: float, l_r: float) -> tuple:
+def gradient_descent(
+    m: float, b: float, l_r: float, values: list, predictions: list
+) -> tuple:
     """One Epoch of Gradient Descent"""
     m_grad, b_grad = 0, 0
     count = len(values)
