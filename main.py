@@ -8,7 +8,7 @@ import numpy as np
 # Constants
 DATA_POINTS = 50
 SLOPE = 2  # Minima of slope
-INTERCEPT = 3  # Minima of intercept
+BIAS = 3  # Minima of intercept
 SQUARED = 2
 PLOT_POINTS = 25
 NOISE = lambda x: 2 * x * rd.choice([1, -1])
@@ -18,15 +18,19 @@ values = []  # x-axis data
 predictions = []  # y-axis data
 
 
-def rng_data_gen() -> None:
+def rng_data_gen(slope: float = SLOPE, bias: float = BIAS) -> tuple:
     """Generates random data for linear regression"""
     # y = m * x + b
     # y = 2x + 3 by default
-    for i in range(DATA_POINTS):
+    values, predictions = [], []
+
+    for _ in range(DATA_POINTS):
         temp_x = rd.randrange(-10, 9) + rd.random()
-        temp_y = SLOPE * temp_x + INTERCEPT + NOISE(rd.random())
+        temp_y = slope * temp_x + bias + NOISE(rd.random())
         values.append(temp_x)
         predictions.append(temp_y)
+
+    return values, predictions
 
 
 def mse_loss(m: float, b: float, values: list, predictions: list) -> float:

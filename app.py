@@ -2,14 +2,16 @@
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output, State
 import random as rd
-from main import mse_loss, gradient_descent
+from main import mse_loss, gradient_descent, rng_data_gen
+from dash_bootstrap_components.themes import BOOTSTRAP
+from layout import entry_layout, viz_layout
 import plotly.graph_objects as go
 import numpy as np
 
 # Constants
 DATA_POINTS = 50
 SLOPE = 2  # Minima of slope
-INTERCEPT = 3  # Minima of intercept
+BIAS = 3  # Minima of intercept
 SQUARED = 2
 PLOT_POINTS = 25
 NOISE = lambda x: 2 * x * rd.choice([1, -1])
@@ -27,25 +29,72 @@ loss_Z = np.zeros((PLOT_POINTS, PLOT_POINTS))
 # temp variables
 
 
-app = Dash(__name__)
+app = Dash(external_stylesheets=[BOOTSTRAP])
 
-
+app.title = "Gradient Descent Visualizer"
 app.layout = html.Div(
     children=[
-        html.H2("Gradient Descent Visualizer"),
-        html.H5("Press the simulate button to perform GD for 5 epochs"),
-        html.Button("Simulate", id="submit-button", n_clicks=0),
-        dcc.Store(id="store", data={"slope": [], "bias": [], "loss": []}),
-        dcc.Graph(id="scatter"),
-        dcc.Graph(id="loss_surface"),
-        html.Div(id="output-div"),
+        html.H1(app.title),
+        html.Hr(),
+        dcc.Store(id="params", data={}),
+        html.Button(
+            "Start",
+            id="submit-button",
+            n_clicks=0,
+            style={"display": "block"},
+        ),
+        html.Div(id="dynamic"),
     ]
 )
+# app.layout = entry_layout(app)
+# app.layout = html.Div(
+#     children=[
+#         html.H2("Gradient Descent Visualizer"),
+#         html.H5("Press the simulate button to perform GD for 5 epochs"),
+#         html.Button("Simulate", id="submit-button", n_clicks=0),
+#         dcc.Store(id="store", data={"slope": [], "bias": [], "loss": []}),
+#         dcc.Graph(id="scatter"),
+#         dcc.Graph(id="loss_surface"),
+#         html.Div(id="output-div"),
+#     ]
+# )
+
+
+@app.callback(
+    Output("dynamic", "children"),
+    Output("submit-button", "style"),
+    Input("submit-button", "n_clicks"),
+)
+def update_layout(n_clicks):
+    if n_clicks > 0:
+        return viz_layout(), {"display": "none"}
+    else:
+        return entry_layout(), {"display": "block"}
+
+
+@app.callback(
+    Output("params", "data"),
+    State("drop_down", "value"),
+    State("slider_m", "value"),
+    State("slider_b", "value"),
+    State("params", "data"),
+    Input("submit-button", "n_clicks"),
+)
+def capture_data(rate, slope, bias, params, n_clicks):
+    print(n_clicks, params, bias, slope, rate)
+    if n_clicks > 0:
+        print("here")
+        params["slope"] = slope
+        params["bias"] = bias
+        params["lr"] = rate
+        params["values"], params["predictions"] = rng_data_gen(slope, bias)
+        print(slope, bias, rate, params["values"], params["predictions"])
+        return params
 
 
 @app.callback(
     Output("store", "data"),
-    Input("submit-button", "n_clicks"),
+    Input("sim-button", "n_clicks"),
     State("store", "data"),
 )
 def run_simulation(n_clicks, data):
@@ -118,11 +167,9 @@ def update_output(data):
 
 
 if __name__ == "__main__":
-    # rng_data_gen()
-
     for i in range(DATA_POINTS):
         temp_x = rd.randrange(-10, 9) + rd.random()
-        temp_y = SLOPE * temp_x + INTERCEPT + NOISE(rd.random())
+        temp_y = SLOPE * temp_x + BIAS + NOISE(rd.random())
         values.append(temp_x)
         predictions.append(temp_y)
 

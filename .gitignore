@@ -1,4 +1,5 @@
 .vscode
+.vscode/settings.json
 trial.py
 .DS_Store
 __pycache__
