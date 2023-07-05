@@ -8,7 +8,7 @@ import numpy as np
 # Constants
 DATA_POINTS = 50
 SLOPE = 2  # Minima of slope
-INTERCEPT = 3  # Minima of intercept
+BIAS = 3  # Minima of intercept
 SQUARED = 2
 PLOT_POINTS = 25
 NOISE = lambda x: 2 * x * rd.choice([1, -1])
@@ -18,18 +18,22 @@ values = []  # x-axis data
 predictions = []  # y-axis data
 
 
-def rng_data_gen() -> None:
+def rng_data_gen(slope: float = SLOPE, bias: float = BIAS) -> tuple:
     """Generates random data for linear regression"""
     # y = m * x + b
     # y = 2x + 3 by default
-    for i in range(DATA_POINTS):
+    values, predictions = [], []
+
+    for _ in range(DATA_POINTS):
         temp_x = rd.randrange(-10, 9) + rd.random()
-        temp_y = SLOPE * temp_x + INTERCEPT + NOISE(rd.random())
+        temp_y = slope * temp_x + bias + NOISE(rd.random())
         values.append(temp_x)
         predictions.append(temp_y)
 
+    return values, predictions
 
-def mse_loss(m: float, b: float) -> float:
+
+def mse_loss(m: float, b: float, values: list, predictions: list) -> float:
     """Mean Squared Error Loss Caluclation"""
     # m: slope, b: intercept
     total_error = 0
@@ -37,10 +41,13 @@ def mse_loss(m: float, b: float) -> float:
         temp_x = values[i]
         temp_y = predictions[i]
         total_error += (temp_y - ((m * temp_x) + b)) ** SQUARED
+
     return total_error / len(values)
 
 
-def gradient_descent(m: float, b: float, l_r: float) -> tuple:
+def gradient_descent(
+    m: float, b: float, l_r: float, values: list, predictions: list
+) -> tuple:
     """One Epoch of Gradient Descent"""
     m_grad, b_grad = 0, 0
     count = len(values)
