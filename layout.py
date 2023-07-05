@@ -1,6 +1,5 @@
 """Layouts for app"""
-
-from dash import Dash, html, dcc
+from dash import html, dcc
 
 
 def entry_layout() -> html.Div:
@@ -19,7 +18,7 @@ def entry_layout() -> html.Div:
                 "0.05",
             ],
             value="0.0001",
-            id="drop_down",
+            id="drop_down_lr",
         ),
         html.H5("Target Slope"),
         dcc.Slider(
@@ -39,13 +38,38 @@ def entry_layout() -> html.Div:
             value=2.5,
             tooltip={"placement": "bottom", "always_visible": True},
         ),
+        dcc.Markdown(
+            """
+            # How to Use
+
+            The target slope and target bias are being used to generate data. 
+            The data (x: values, y: predictions) will be used to perform 
+            Linear regression
+
+
+            You can tweak around the parameters to visualize the changes that 
+            are going to take place in Gradient Descent as training occurs
+        """
+        ),
     ]
 
 
 def viz_layout() -> html.Div:
     """Layout for viz"""
     return [
-        html.H5("Press the simulate button to perform GD for 5 epochs"),
+        dcc.Dropdown(
+            [
+                "5",
+                "10",
+                "15",
+                "20",
+                "25",
+                "50",
+            ],
+            value="5",
+            id="drop_down_epochs",
+        ),
+        html.H5("Press the simulate button to perform GD for selected epochs"),
         html.Button("Simulate", id="sim-button", n_clicks=0),
         dcc.Store(id="store", data={"slope": [], "bias": [], "loss": []}),
         dcc.Graph(id="scatter"),
