@@ -1,20 +1,79 @@
-certifi==2023.5.7
-contourpy @ file:///Users/runner/miniforge3/conda-bld/contourpy_1673633733444/work
-cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1635519461629/work
-fonttools @ file:///Users/runner/miniforge3/conda-bld/fonttools_1683740697099/work
-importlib-resources @ file:///home/conda/feedstock_root/build_artifacts/importlib_resources_1676919000169/work
-kiwisolver @ file:///Users/runner/miniforge3/conda-bld/kiwisolver_1666805848360/work
-matplotlib @ file:///Users/runner/miniforge3/conda-bld/matplotlib-suite_1678135701492/work
-munkres==1.1.4
-numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1682210398476/work
-packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1681337016113/work
-pandas @ file:///Users/runner/miniforge3/conda-bld/pandas_1685342993493/work
-Pillow @ file:///Users/runner/miniforge3/conda-bld/pillow_1684654251435/work
-pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1652235407899/work
-python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1626286286081/work
-pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1680088766131/work
-six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
-tornado @ file:///Users/runner/miniforge3/conda-bld/tornado_1684150249057/work
-tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1680081134351/work
-unicodedata2 @ file:///Users/runner/miniforge3/conda-bld/unicodedata2_1667240193675/work
-zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1677313463193/work
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-arm64
+blinker=1.6.2
+brotli=1.0.9
+brotli-bin=1.0.9
+bzip2=1.0.8
+ca-certificates=2023.5.7
+certifi=2023.5.7
+click=8.1.3
+contourpy=1.0.7
+cycler=0.11.0
+dash=2.10.2
+dash-bootstrap-components=1.4.1
+flask=2.3.2
+fonttools=4.39.4
+freetype=2.12.1
+importlib-metadata=6.6.0
+importlib-resources=5.12.0
+importlib_resources=5.12.0
+itsdangerous=2.1.2
+jinja2=3.1.2
+kiwisolver=1.4.4
+lcms2=2.15
+lerc=4.0.0
+libblas=3.9.0
+libbrotlicommon=1.0.9
+libbrotlidec=1.0.9
+libbrotlienc=1.0.9
+libcblas=3.9.0
+libcxx=16.0.5
+libdeflate=1.18
+libffi=3.4.2
+libgfortran=5.0.0
+libgfortran5=12.2.0
+libjpeg-turbo=2.1.5.1
+liblapack=3.9.0
+libopenblas=0.3.23
+libpng=1.6.39
+libsqlite=3.42.0
+libtiff=4.5.0
+libwebp-base=1.3.0
+libxcb=1.15
+libzlib=1.2.13
+llvm-openmp=16.0.5
+markupsafe=2.1.3
+matplotlib=3.7.1
+matplotlib-base=3.7.1
+munkres=1.1.4
+ncurses=6.4
+numpy=1.24.3
+openjpeg=2.5.0
+openssl=3.1.1
+packaging=23.1
+pandas=2.0.2
+pillow=9.5.0
+pip=23.1.2
+plotly=5.15.0
+pthread-stubs=0.4
+pyparsing=3.0.9
+python=3.8.16
+python-dateutil=2.8.2
+python-tzdata=2023.3
+python_abi=3.8
+pytz=2023.3
+readline=8.2
+setuptools=67.7.2
+six=1.16.0
+tenacity=8.2.2
+tk=8.6.12
+tornado=6.3.2
+unicodedata2=15.0.0
+werkzeug=2.3.6
+wheel=0.40.0
+xorg-libxau=1.0.11
+xorg-libxdmcp=1.1.3
+xz=5.2.6
+zipp=3.15.0
+zstd=1.5.2
