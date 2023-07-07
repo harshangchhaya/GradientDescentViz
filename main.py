@@ -1,167 +1,218 @@
-"""Main logic for Gradient Descent Viz"""
-
+"""Web app"""
 
 import random as rd
-import matplotlib.pyplot as plt
 import numpy as np
+import time
+from dash import Dash, html, dcc
+from dash.dependencies import Input, Output, State
+import plotly.graph_objects as go
+from dash_bootstrap_components.themes import BOOTSTRAP
+from components import mse_loss, gradient_descent, rng_data_gen
+from layout import entry_layout, viz_layout
+
 
 # Constants
 DATA_POINTS = 50
-SLOPE = 2  # Minima of slope
-BIAS = 3  # Minima of intercept
 SQUARED = 2
+DAMP = 0.2 * rd.random()
 PLOT_POINTS = 25
 NOISE = lambda x: 2 * x * rd.choice([1, -1])
 
-# Variables
-values = []  # x-axis data
-predictions = []  # y-axis data
+
+app = Dash(external_stylesheets=[BOOTSTRAP])
+
+app.title = "Gradient Descent Visualizer"
+app.layout = html.Div(
+    children=[
+        html.H1(app.title),
+        html.Hr(),
+        dcc.Store(id="params", data={}),
+        dcc.Store(id="loss_info", data={}),
+        html.Button(
+            "Start",
+            id="submit-button",
+            n_clicks=0,
+            style={"display": "block"},
+        ),
+        html.Div(id="dynamic"),
+    ]
+)
 
 
-def rng_data_gen(slope: float = SLOPE, bias: float = BIAS) -> tuple:
-    """Generates random data for linear regression"""
-    # y = m * x + b
-    # y = 2x + 3 by default
-    values, predictions = [], []
-
-    for _ in range(DATA_POINTS):
-        temp_x = rd.randrange(-10, 9) + rd.random()
-        temp_y = slope * temp_x + bias + NOISE(rd.random())
-        values.append(temp_x)
-        predictions.append(temp_y)
-
-    return values, predictions
-
-
-def mse_loss(m: float, b: float, values: list, predictions: list) -> float:
-    """Mean Squared Error Loss Caluclation"""
-    # m: slope, b: intercept
-    total_error = 0
-    for i, _ in enumerate(values):
-        temp_x = values[i]
-        temp_y = predictions[i]
-        total_error += (temp_y - ((m * temp_x) + b)) ** SQUARED
-
-    return total_error / len(values)
+@app.callback(
+    Output("dynamic", "children"),  # Updates app layout
+    Output("submit-button", "style"),  # Hides button
+    Input("submit-button", "n_clicks"),
+)
+def update_layout(n_clicks: int):
+    """Changes layout after getting input data"""
+    if n_clicks > 0:
+        time.sleep(0.5)
+        return viz_layout(), {"display": "none"}
+    else:
+        return entry_layout(), {"display": "block"}
 
 
-def gradient_descent(
-    m: float, b: float, l_r: float, values: list, predictions: list
-) -> tuple:
-    """One Epoch of Gradient Descent"""
-    m_grad, b_grad = 0, 0
-    count = len(values)
+@app.callback(
+    Output("params", "data"),  # Regression parameters
+    State("drop_down_lr", "value"),  # Learning rate
+    State("slider_m", "value"),  # Slope
+    State("slider_b", "value"),  # Bias
+    State("params", "data"),
+    Input("submit-button", "n_clicks"),
+)
+def capture_data(rate: float, slope: float, bias: float, params: dict, n_clicks: int):
+    """Gets data from landing page"""
+    if n_clicks > 0:
+        # Generate parameters for simulation
+        # values: X data
+        # predictions : Y data
+        params["slope"] = slope
+        params["bias"] = bias
+        params["lr"] = rate
+        params["values"], params["predictions"] = rng_data_gen(slope, bias)
+        return params
 
-    for i, _ in enumerate(values):
-        temp_x = values[i]
-        temp_y = predictions[i]
 
-        m_grad += -(2 / count) * temp_x * (temp_y - (m * temp_x + b))
-        b_grad += -(2 / count) * (temp_y - (m * temp_x + b))
+@app.callback(
+    Output("loss_info", "data"),  # Loss surface matrix
+    State("loss_info", "data"),
+    Input("params", "data"),  # Regression parameters
+)
+def loss_surface_generation(loss_info: dict, params: dict):
+    """Generates loss surface for 3D plot"""
+    loss_x = np.linspace(-7, 7, PLOT_POINTS)
+    loss_y = np.linspace(-7, 7, PLOT_POINTS)
+    loss_X, loss_Y = np.meshgrid(loss_x, loss_y)
+    loss_Z = np.zeros((PLOT_POINTS, PLOT_POINTS))
+    for i, _ in enumerate(loss_X):
+        for j, _ in enumerate(loss_Y):
+            loss_Z[i, j] = mse_loss(
+                loss_X[i, j],
+                loss_Y[i, j],
+                params["values"],
+                params["predictions"],
+            )
+    loss_info["Z"] = loss_Z
+    loss_info["X"] = loss_X
+    loss_info["Y"] = loss_Y
 
-    m_next = m - l_r * m_grad
-    b_next = b - l_r * b_grad
-    return m_next, b_next
+    return loss_info
 
 
-class RegressionPlot:
-    """Class for Viz"""
+@app.callback(
+    Output("store", "data"),  # Model and Graphing Data
+    Input("sim-button", "n_clicks"),  # Simulation Button
+    State("store", "data"),
+    State("params", "data"),  # Regression parameters
+    State("drop_down_epochs", "value"),  # Epochs selected
+)
+def run_simulation(n_clicks: int, data: dict, params: dict, epoch_period: int):
+    """Performs Gradient Descent simulation"""
 
-    def __init__(self) -> None:
-        self.X = None  # x axis for 3D plot
-        self.Y = None  # y axis for 3D plot
-        self.Z = None  # z axis for 3D plot
-        self.values = []  # x values
-        self.predictions = []  # y values
-        self.points = {}  # GD theta/parameters for Viz
-
-    def generate_loss_surface(self) -> None:
-        """One time loss surface plot calculation"""
-        x_data = np.linspace(-1, 5, PLOT_POINTS)
-        y_data = np.linspace(-1, 5, PLOT_POINTS)
-        self.X, self.Y = np.meshgrid(x_data, y_data)
-        # This part of code is buggy
-        self.Z = np.zeros((PLOT_POINTS, PLOT_POINTS))
-
-        for i, _ in enumerate(self.X):
-            for j, _ in enumerate(self.Y):
-                self.Z[i, j] = mse_loss(self.X[i, j], self.Y[i, j])
-
-    def update_points(self, m: float, b: float, loss: float) -> None:
-        """Update new points on plot"""
-
-        self.points["slope"].append(m)
-        self.points["bias"].append(b)
-        self.points["loss"].append(loss)
-
-    def plot_output(self, m: float, b: float, loss: float) -> None:
-        """Plots the current step"""
-
-        def init_point_dict() -> None:
-            """One time initialization of points dictionary"""
-            self.points["slope"] = []
-            self.points["bias"] = []
-            self.points["loss"] = []
-
-        if not self.points:
-            init_point_dict()
-        # Includes two plots
-        # Linear regression plot
-        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-        ax2 = axes[0]
-        ax2.scatter(values, predictions, color="purple", alpha=0.4)
-        ax2.axhline(0, color="black", linewidth=0.5)
-        ax2.axvline(0, color="black", linewidth=0.5)
-        ax2.set_title("Linear Regression")
-        ax2.set_xlabel("Values")
-        ax2.set_ylabel("Predictions")
-        x_axis = np.linspace(-10, 10, PLOT_POINTS)
-        ax2.plot(x_axis, m * x_axis + b, color="gray")
-        # 3D plot
-        ax3 = axes[1]
-        ax3 = fig.add_subplot(122, projection="3d")
-        # fig2, ax2 = plt.subplots(subplot_kw=dict(projection="3d"))
-        ax3.set_title("Loss Surface")
-        ax3.set_xlabel("Slope")
-        ax3.set_ylabel("Intercept")
-        ax3.plot_surface(self.X, self.Y, self.Z, cmap="terrain", alpha=0.9)
-        ax3.scatter(
-            self.points["slope"],
-            self.points["bias"],
-            self.points["loss"],
-            color="black",
+    def append_data(data: dict, m: float = DAMP, b: float = DAMP):
+        """Moves slope, bias, loss to session data storage"""
+        data["slope"].append(m)
+        data["bias"].append(b)
+        temp_loss = mse_loss(
+            data["slope"][-1],
+            data["bias"][-1],
+            params["values"],
+            params["predictions"],
         )
-        ax3.scatter3D(m, b, loss, color="white")
-        plt.tight_layout()
-        # updating the new point in gradient descent
-        self.update_points(m, b, loss)
+        data["loss"].append(temp_loss)
+
+    def init_data(data):
+        """Initializes session data"""
+        append_data(data)
+
+    if not data["slope"]:
+        init_data(data)
+
+    if n_clicks > 0:
+        # After Sim is clicked for the first time
+        current_slope = data["slope"][-1]
+        current_bias = data["bias"][-1]
+
+        for _ in range(int(epoch_period)):
+            next_slope, next_bias = gradient_descent(
+                current_slope,
+                current_bias,
+                float(params["lr"]),
+                params["values"],
+                params["predictions"],
+            )
+            current_bias = next_bias
+            current_slope = next_slope
+
+        append_data(data, current_slope, current_bias)
+
+    return data
 
 
-def main() -> None:
-    """Main."""
-    m = rd.random()  # slope
-    b = rd.random()  # intercept
+@app.callback(
+    Output("scatter", "figure"),  # 2D plot
+    Output("loss_surface", "figure"),  # 3D plot
+    Input("store", "data"),  # Model and Graphing Data
+    State("params", "data"),  # Regression parameters
+    State("loss_info", "data"),  # Loss surface matrix
+)
+def update_output(data: dict, params: dict, loss_info: dict):
+    """Displays the graphs"""
 
-    # Getting Input from command line
-    l_r = float(input("Enter Learning Rate:"))
-    epochs = int(input("Total Epochs:"))
-    epoch_period = int(input("Epoch Time Period:"))
-    rng_data_gen()
+    x_data = np.linspace(-5, 5, 5)  # For model line
 
-    # Logic starts
-    reg_viz = RegressionPlot()
-    reg_viz.generate_loss_surface()
-    reg_viz.plot_output(m, b, mse_loss(m, b))
+    # 2D plot
+    line_plot = go.Figure()
+    line_plot.update_layout(
+        title="Regression Plot",
+        xaxis_title="Values",
+        yaxis_title="Predictions",
+    )
+    line_plot.add_trace(
+        go.Scatter(
+            x=params["values"],
+            y=params["predictions"],
+            mode="markers",
+            name="Data",
+        )
+    )
+    line_plot.add_trace(
+        go.Scatter(
+            x=x_data,
+            y=data["slope"][-1] * x_data + data["bias"][-1],
+            mode="lines",
+            name="Model",
+        )
+    )
 
-    for i in range(epochs):
-        m, b = gradient_descent(m, b, l_r)
-        if i % epoch_period == 0 and i != 0:
-            plt.close("all")
-            reg_viz.plot_output(m, b, mse_loss(m, b))
-            print("Epoch ", i)
-            plt.show(block=False)
-            temp_input = input("Enter to continue.")
+    # 3D plot
+    loss_plot = go.Figure()
+    loss_plot.update_layout(
+        title="Loss Surface",
+        scene=dict(
+            xaxis_title="Slope",
+            yaxis_title="Bias",
+            zaxis_title="Loss",
+        ),
+    )
+
+    loss_plot.add_trace(
+        go.Surface(
+            z=loss_info["Z"],
+            x=loss_info["X"],
+            y=loss_info["Y"],
+            opacity=0.2,
+        )
+    )
+    loss_plot.add_trace(
+        go.Scatter3d(
+            x=data["slope"], y=data["bias"], z=data["loss"], marker=dict(size=3)
+        )
+    )
+
+    return line_plot, loss_plot
 
 
 if __name__ == "__main__":
-    main()
+    app.run_server()
