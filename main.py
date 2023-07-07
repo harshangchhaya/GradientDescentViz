@@ -1,8 +1,8 @@
 """Web app"""
-
+import os
 import random as rd
-import numpy as np
 import time
+import numpy as np
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
@@ -215,4 +215,5 @@ def update_output(data: dict, params: dict, loss_info: dict):
 
 
 if __name__ == "__main__":
-    app.run_server()
+    port = int(os.environ.get("PORT", 8050))
+    app.run(host="0.0.0.0", port=port)
