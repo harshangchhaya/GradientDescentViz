@@ -40,16 +40,32 @@ def entry_layout() -> html.Div:
         ),
         dcc.Markdown(
             """
-            # How to Use
+            ### How to Use
+
+            Select the starting parameters for performing Linear Regression
 
             The target slope and target bias are being used to generate data. 
-            The data (x: values, y: predictions) will be used to perform 
-            Linear regression
+            A linear regression model will be fit to the generated data (x: values, y: predictions)
+            
+
+            The model: _y = f(x) = slope * x + bias_
+
+            Loss: Mean Squared Error
 
 
             You can tweak around the parameters to visualize the changes that 
             are going to take place in Gradient Descent as training occurs
         """
+        ),
+        html.A(
+            "Github",
+            href="https://github.com/harshangchhaya/GradientDescentViz",
+            style={
+                "position": "fixed",
+                "bottom": "10px",
+                "left": "50%",
+                "transform": "translateX(-50%)",
+            },
         ),
     ]
 
@@ -57,8 +73,10 @@ def entry_layout() -> html.Div:
 def viz_layout() -> html.Div:
     """Layout for viz"""
     return [
+        html.H4("Select Epochs"),
         dcc.Dropdown(
             [
+                "1",
                 "5",
                 "10",
                 "15",
@@ -72,7 +90,17 @@ def viz_layout() -> html.Div:
         html.H5("Press the simulate button to perform GD for selected epochs"),
         html.Button("Simulate", id="sim-button", n_clicks=0),
         dcc.Store(id="store", data={"slope": [], "bias": [], "loss": []}),
-        dcc.Graph(id="scatter"),
-        dcc.Graph(id="loss_surface"),
+        html.Div(
+            children=[
+                html.Div(
+                    dcc.Graph(id="scatter"),
+                    style={"display": "inline-block", "width": "50%"},
+                ),
+                html.Div(
+                    dcc.Graph(id="loss_surface"),
+                    style={"display": "inline-block", "width": "50%"},
+                ),
+            ]
+        ),
         html.Div(id="output-div"),
     ]

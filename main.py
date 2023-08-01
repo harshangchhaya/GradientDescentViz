@@ -7,7 +7,7 @@ from dash import Dash, html, dcc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 from dash_bootstrap_components.themes import BOOTSTRAP
-from components import mse_loss, gradient_descent, rng_data_gen
+from components import mse_loss, gradient_descent, rng_data_gen, bounds_check
 from layout import entry_layout, viz_layout
 
 
@@ -15,7 +15,8 @@ from layout import entry_layout, viz_layout
 DATA_POINTS = 50
 SQUARED = 2
 DAMP = 0.2 * rd.random()
-PLOT_POINTS = 25
+MODEL_POINTS = 9
+PLOT_POINTS = 32
 NOISE = lambda x: 2 * x * rd.choice([1, -1])
 
 
@@ -81,8 +82,11 @@ def capture_data(rate: float, slope: float, bias: float, params: dict, n_clicks:
 )
 def loss_surface_generation(loss_info: dict, params: dict):
     """Generates loss surface for 3D plot"""
-    loss_x = np.linspace(-7, 7, PLOT_POINTS)
-    loss_y = np.linspace(-7, 7, PLOT_POINTS)
+
+    x_min, x_max, y_min, y_max = bounds_check(params)
+
+    loss_x = np.linspace(x_min, x_max, PLOT_POINTS)
+    loss_y = np.linspace(y_min, y_max, PLOT_POINTS)
     loss_X, loss_Y = np.meshgrid(loss_x, loss_y)
     loss_Z = np.zeros((PLOT_POINTS, PLOT_POINTS))
     for i, _ in enumerate(loss_X):
@@ -160,7 +164,8 @@ def run_simulation(n_clicks: int, data: dict, params: dict, epoch_period: int):
 def update_output(data: dict, params: dict, loss_info: dict):
     """Displays the graphs"""
 
-    x_data = np.linspace(-5, 5, 5)  # For model line
+    # Line for Model
+    x_data = np.linspace(-MODEL_POINTS, MODEL_POINTS, MODEL_POINTS)
 
     # 2D plot
     line_plot = go.Figure()
@@ -169,7 +174,7 @@ def update_output(data: dict, params: dict, loss_info: dict):
         xaxis_title="Values",
         yaxis_title="Predictions",
     )
-    line_plot.add_trace(
+    line_plot.add_trace(  # Data
         go.Scatter(
             x=params["values"],
             y=params["predictions"],
@@ -177,7 +182,7 @@ def update_output(data: dict, params: dict, loss_info: dict):
             name="Data",
         )
     )
-    line_plot.add_trace(
+    line_plot.add_trace(  # Model Fit
         go.Scatter(
             x=x_data,
             y=data["slope"][-1] * x_data + data["bias"][-1],
@@ -198,14 +203,14 @@ def update_output(data: dict, params: dict, loss_info: dict):
     )
 
     loss_plot.add_trace(
-        go.Surface(
+        go.Surface(  # Loss surface
             z=loss_info["Z"],
             x=loss_info["X"],
             y=loss_info["Y"],
             opacity=0.2,
         )
     )
-    loss_plot.add_trace(
+    loss_plot.add_trace(  # Parameter history
         go.Scatter3d(
             x=data["slope"], y=data["bias"], z=data["loss"], marker=dict(size=3)
         )

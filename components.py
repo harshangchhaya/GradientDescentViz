@@ -64,6 +64,33 @@ def gradient_descent(
     return m_next, b_next
 
 
+def bounds_check(params) -> tuple:
+    """Returns anchor points for loss surface"""
+    slope = params["slope"]
+    bias = params["bias"]
+
+    if slope >= 0 and bias >= 0:
+        x_min, y_min = 0, 0
+        x_max = 2 * slope
+        y_max = 2 * bias
+    elif slope >= 0 and bias < 0:
+        x_min = 0
+        x_max = 2 * slope
+        y_max = 1
+        y_min = 2 * bias
+    elif slope < 0 and bias >= 0:
+        y_min = 0
+        y_max = 2 * bias
+        x_min = 2 * slope
+        x_max = 1
+    elif slope < 0 and bias < 0:
+        y_min = 2 * bias
+        x_min = 2 * slope
+        y_max, x_max = 1, 1
+
+    return x_min, x_max, y_min, y_max
+
+
 class RegressionPlot:
     """Class for Viz"""
 

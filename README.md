@@ -4,4 +4,5 @@ A place to visualize gradient descent for linear regression.
 ### Version
 Python 3.8.16
 
-This is the Command line version of the code.
+### Future
+Support for more gradient descent based algorithms coming soon.
